@@ -25,10 +25,10 @@ p{margin:0 0 1em}
 
 /* header */
 .site-header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
-.hdr{display:flex;align-items:center;gap:20px;min-height:70px}
+.hdr{display:flex;align-items:center;gap:20px;min-height:80px;padding-top:8px;padding-bottom:8px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--green);font-weight:800;font-size:1.2rem;white-space:nowrap}
 .brand b{color:var(--acorn-d)}
-.logo-mark{width:38px;height:38px;flex:none}
+.logo-img{display:block;height:60px;width:auto;max-width:100%}
 .nav{display:flex;align-items:center;gap:4px;margin-left:auto}
 .nav a{white-space:nowrap;color:var(--ink);text-decoration:none;font-weight:600;font-size:.95rem;padding:8px 10px;border-radius:8px}
 .nav a:hover,.nav a[aria-current]{color:var(--green);background:var(--green-l)}
@@ -163,8 +163,7 @@ aside.side:not(:has(form)){background:#fff;border:1px solid var(--line);border-r
 /* footer */
 .site-footer{background:var(--green-d);color:rgba(255,255,255,.85);padding:56px 0 100px;font-size:.95rem}
 .site-footer a{color:#fff}
-.brand-light{color:#fff}
-.brand-light b{color:#f0c27a}
+.brand-light{display:inline-block;margin-bottom:14px}
 .f-grid{display:grid;grid-template-columns:1.3fr 1.4fr 1fr 1fr;gap:32px}
 .f-h{font-size:.85rem;text-transform:uppercase;letter-spacing:.1em;color:#f0c27a;margin-bottom:12px}
 .site-footer ul{list-style:none;padding:0;margin:0 0 10px}
@@ -181,7 +180,7 @@ aside.side:not(:has(form)){background:#fff;border:1px solid var(--line);border-r
   .hdr-phone span{display:inline}
   .menu-btn{display:block;margin-left:0}
   .hdr-phone{margin-left:auto}
-  .nav{display:none;position:absolute;top:70px;left:0;right:0;background:#fff;flex-direction:column;align-items:stretch;padding:12px 20px 20px;border-bottom:1px solid var(--line);box-shadow:var(--sh)}
+  .nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column;align-items:stretch;padding:12px 20px 20px;border-bottom:1px solid var(--line);box-shadow:var(--sh)}
   .nav.open{display:flex}
   .nav a{padding:12px}
   .nav .btn{margin:8px 0 0}
@@ -199,7 +198,7 @@ aside.side:not(:has(form)){background:#fff;border:1px solid var(--line);border-r
   .hero{padding:36px 0 44px}
   .steps,.cards,.f-grid,.row2{grid-template-columns:1fr}
   .lead-form{padding:20px}
-  .brand{font-size:1.05rem}
+  .logo-img{height:48px}
   .hdr-phone span{display:none}
   .hdr-phone .ic{width:24px;height:24px}
   .trust-in{justify-content:flex-start}

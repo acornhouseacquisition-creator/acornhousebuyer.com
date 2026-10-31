@@ -1,49 +1,73 @@
-"""Draws the PNG icons and the 1200x630 social share image. Needs Pillow (pip install pillow)."""
+"""Makes the logo sizes, icons and the 1200x630 share image from _src/brand/logo-source.webp.
+Needs Pillow (pip install pillow)."""
 import os
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-GREEN, GREEN_D, ACORN, CAP, CREAM = (31, 77, 58), (22, 58, 44), (200, 134, 47), (232, 180, 106), (255, 248, 236)
 BOLD = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
 REG = "/System/Library/Fonts/Supplemental/Arial.ttf"
+GOLD, BLACK = (244, 180, 20), (10, 10, 10)
+
+src = Image.open(os.path.join(ROOT, "_src/brand/logo-source.webp")).convert("RGBA")
+src = src.crop(src.getchannel("A").getbbox())
+W, H = src.size
 
 
-def acorn(d, x, y, s):
-    """Acorn with a little house cut out, inside a box of size s at (x, y)."""
-    u = s / 64
-    d.rectangle([x + 29 * u, y + 7 * u, x + 35 * u, y + 15 * u], fill=CAP)
-    d.chord([x + 10 * u, y + 11 * u, x + 54 * u, y + 39 * u], 180, 360, fill=CAP)
-    d.pieslice([x + 12 * u, y + 0 * u, x + 52 * u, y + 54 * u], 0, 180, fill=ACORN)
-    d.polygon([(x + 26 * u, y + 41 * u), (x + 32 * u, y + 36 * u), (x + 38 * u, y + 41 * u),
-               (x + 38 * u, y + 49 * u), (x + 26 * u, y + 49 * u)], fill=CREAM)
+def light_version(im):
+    """Black letters become white for dark backgrounds; the gold stays gold."""
+    out = im.copy()
+    px = out.load()
+    for y in range(out.height):
+        for x in range(out.width):
+            r, g, b, a = px[x, y]
+            if a and r < 120:
+                px[x, y] = (255, 255, 255, a)
+    return out
 
 
-def icon(size, name, rounded=True):
-    im = Image.new("RGBA", (size * 4, size * 4), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle([0, 0, size * 4 - 1, size * 4 - 1], radius=size * 4 * 14 // 64 if rounded else 0, fill=GREEN)
-    acorn(d, 0, size * 4 * 0.06, size * 4)
-    im.resize((size, size), Image.LANCZOS).save(os.path.join(ROOT, name))
+def sized(im, height):
+    return im.resize((round(im.width * height / im.height), height), Image.LANCZOS)
+
+
+def save_png(im, name):
+    im.save(os.path.join(ROOT, name), optimize=True)
+
+
+light = light_version(src)
+save_png(sized(src, 180), "assets/logo-header.png")  # shown at 60px tall, sharp on retina screens
+save_png(sized(light, 180), "assets/logo-light.png")
+save_png(sized(src, 400), "assets/logo.png")         # for Google business data
+
+# Acorn cut from the logo: the columns around the stem, above the gold line
+ACORN_BOX = (round(W * .405), 0, round(W * .605), round(H * .79))
+acorn = src.crop(ACORN_BOX)
+acorn = acorn.crop(acorn.getchannel("A").getbbox())
+
+
+def icon(size, name):
+    s = size * 4
+    im = Image.new("RGBA", (s, s), (255, 255, 255, 255))
+    a = sized(acorn, round(s * .84))
+    im.alpha_composite(a, ((s - a.width) // 2, (s - a.height) // 2))
+    save_png(im.convert("RGB").resize((size, size), Image.LANCZOS), name)
 
 
 icon(32, "favicon-32.png")
-icon(180, "apple-touch-icon.png", rounded=False)
+icon(48, "favicon-48.png")
+icon(180, "apple-touch-icon.png")
 icon(512, "icon-512.png")
-icon(512, "assets/logo.png")
 
-og = Image.new("RGB", (1200, 630), GREEN)
+og = Image.new("RGBA", (1200, 630), BLACK + (255,))
 d = ImageDraw.Draw(og)
-for i in range(630):  # soft diagonal gradient
-    t = i / 630
-    d.line([(0, i), (1200, i)], fill=tuple(int(GREEN_D[k] + (GREEN[k] - GREEN_D[k]) * t) for k in range(3)))
-acorn(d, 80, 70, 150)
-d.text((250, 105), "Acorn House Buyer", font=ImageFont.truetype(BOLD, 54), fill=(255, 255, 255))
-d.text((250, 170), "acornhousebuyer.com", font=ImageFont.truetype(REG, 30), fill=CAP)
-d.text((80, 270), "We Buy Houses for Cash", font=ImageFont.truetype(BOLD, 76), fill=(255, 255, 255))
-d.text((80, 360), "in North Carolina", font=ImageFont.truetype(BOLD, 76), fill=CAP)
-d.text((80, 470), "Any condition  •  No repairs  •  No commissions  •  Close on your date",
-       font=ImageFont.truetype(REG, 30), fill=(230, 238, 233))
-d.rounded_rectangle([80, 535, 470, 595], radius=12, fill=ACORN)
-d.text((104, 548), "(704) 246-3399", font=ImageFont.truetype(BOLD, 34), fill=(255, 255, 255))
-og.save(os.path.join(ROOT, "assets/og-image.png"), optimize=True)
-print("images done")
+logo = sized(light, 250)
+og.alpha_composite(logo, ((1200 - logo.width) // 2, 55))
+def centered(text, font, y, fill):
+    d.text(((1200 - d.textlength(text, font=font)) / 2, y), text, font=font, fill=fill)
+centered("We Buy Houses for Cash in North Carolina", ImageFont.truetype(BOLD, 46), 345, (255, 255, 255))
+centered("Any condition  •  No repairs  •  No commissions", ImageFont.truetype(REG, 32), 418, (225, 225, 225))
+phone_font = ImageFont.truetype(BOLD, 36)
+pw = d.textlength("(704) 246-3399", font=phone_font)
+d.rounded_rectangle([(1200 - pw) / 2 - 30, 495, (1200 + pw) / 2 + 30, 565], radius=12, fill=GOLD)
+centered("(704) 246-3399", phone_font, 510, BLACK)
+save_png(og.convert("RGB"), "assets/og-image.png")
+print("images done", src.size, "acorn", acorn.size)

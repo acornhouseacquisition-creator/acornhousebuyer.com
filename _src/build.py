@@ -27,6 +27,7 @@ TODAY = datetime.date.today().isoformat()
 # -------------------------------------------------------------------------------
 
 E = html.escape
+LOGO_RATIO = 2.8111  # logo width / height
 ORG_ID = SITE + "/#business"
 PAGES = []  # (path, priority)
 
@@ -54,11 +55,9 @@ def icon(name, cls="ic"):
             f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{ICONS[name]}</svg>')
 
 
-LOGO = ('<svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true">'
-        '<path d="M32 6c-2 0-3 1-3 3v3c-9 1-18 5-21 13h48C53 17 44 13 35 12V9c0-2-1-3-3-3z" fill="#6b4423"/>'
-        '<path d="M10 27h44c0 16-9 29-22 31C19 56 10 43 10 27z" fill="#c8862f"/>'
-        '<path d="M8 25h48" stroke="#4a2e17" stroke-width="3" stroke-linecap="round"/>'
-        '<path d="M25 40l7-6 7 6v9H25z" fill="#fff8ec"/></svg>')
+def logo_img(src, height):
+    width = round(height * LOGO_RATIO)
+    return f'<img class="logo-img" src="{src}" alt="{BRAND}" width="{width}" height="{height}">'
 
 
 def business_schema():
@@ -108,7 +107,7 @@ def header(path):
     links = "".join(f'<a href="{u}"{cur if u == path else ""}>{n}</a>' for n, u in NAV)
     return f'''<a class="skip" href="#main">Skip to content</a>
 <header class="site-header"><div class="wrap hdr">
-<a class="brand" href="/" aria-label="{BRAND} home">{LOGO}<span>Acorn House <b>Buyer</b></span></a>
+<a class="brand" href="/" aria-label="{BRAND} home">{logo_img("/assets/logo-header.png", 60)}</a>
 <nav class="nav" id="nav" aria-label="Main">{links}<a class="btn btn-sm" href="/get-cash-offer/">Get My Offer</a></nav>
 <a class="hdr-phone" href="tel:{PHONE_TEL}">{icon("phone")}<span>{PHONE_DISPLAY}</span></a>
 <button class="menu-btn" aria-controls="nav" aria-expanded="false" aria-label="Open menu"><span></span><span></span><span></span></button>
@@ -122,7 +121,7 @@ def footer():
     legal = LEGAL_NAME or BRAND
     return f'''<footer class="site-footer"><div class="wrap">
 <div class="f-grid">
-<div><a class="brand brand-light" href="/">{LOGO}<span>Acorn House <b>Buyer</b></span></a>
+<div><a class="brand brand-light" href="/" aria-label="{BRAND} home">{logo_img("/assets/logo-light.png", 60)}</a>
 <p>We buy houses for cash across North Carolina. Any condition, no commissions, close on your date.</p>
 <p class="nap"><a href="tel:{PHONE_TEL}">{PHONE_DISPLAY}</a><br><a href="mailto:{EMAIL}">{EMAIL}</a><br>{E(addr)}</p></div>
 <div><h2 class="f-h">Areas We Buy</h2><ul class="f-cities">{city_links}</ul><a href="/north-carolina/">All North Carolina areas &rarr;</a></div>
@@ -198,7 +197,7 @@ def page(path, title, desc, body, schema=(), trail=None, priority="0.7", robots=
 <meta property="og:image:alt" content="Acorn House Buyer: we buy houses for cash in North Carolina">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#1f4d3a">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
