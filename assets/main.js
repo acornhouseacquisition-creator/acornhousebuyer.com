@@ -7,47 +7,29 @@
   });
 })();
 
-// Lead forms: POST to data-endpoint when set; otherwise open a pre-filled email.
-document.querySelectorAll('.lead-form').forEach(function (form) {
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var status = form.querySelector('.form-status');
-    var bad = null;
-    form.querySelectorAll('[required]').forEach(function (el) {
-      var empty = !el.value.trim();
-      el.classList.toggle('invalid', empty);
-      if (empty && !bad) bad = el;
+// Close form look. Only styling changes here: fields and submission still come from Close.
+var CLOSE_FORM_CSS = `
+.form{padding:0;font-family:var(--font);color:var(--ink)}
+.form .form-row{margin-bottom:0}
+.form .label{font-size:.9rem;font-weight:700;color:var(--ink)}
+.form .input{font:inherit;font-size:16px;font-weight:400;padding:12px 13px;border:1.5px solid #cfc8bb;border-radius:9px;background:#fff;color:var(--ink);box-shadow:none}
+.form .input:focus,.form .input:focus-within{border-color:var(--green);outline:none;box-shadow:0 0 0 3px rgba(31,77,58,.18)}
+.form .phone-input input{font:inherit;font-size:16px}
+.form .checkbox-input{accent-color:var(--green);width:18px;height:18px;flex:none}
+.form .checkbox-message{font-size:.78rem;font-weight:400;line-height:1.45;color:var(--muted)}
+.form .checkbox-message a{color:var(--green)}
+.form .button{width:100%;font:inherit;font-size:1.08rem;font-weight:800;padding:14px 24px;border:0;border-radius:10px;background:var(--acorn);color:#fff;cursor:pointer;transition:background .15s}
+.form .button:hover{background:var(--acorn-d)}
+`;
+if (window.customElements && 'adoptedStyleSheets' in Document.prototype) {
+  customElements.whenDefined('close-form').then(function () {
+    var sheet = new CSSStyleSheet();
+    sheet.replaceSync(CLOSE_FORM_CSS);
+    document.querySelectorAll('close-form').forEach(function (el) {
+      (function apply(tries) {
+        if (el.shadowRoot) el.shadowRoot.adoptedStyleSheets = el.shadowRoot.adoptedStyleSheets.concat(sheet);
+        else if (tries) setTimeout(apply, 100, tries - 1);
+      })(50);
     });
-    var phone = form.querySelector('[name=phone]');
-    if (!bad && phone.value.replace(/\D/g, '').length < 10) { bad = phone; phone.classList.add('invalid'); }
-    if (bad) {
-      status.className = 'form-status err';
-      status.textContent = 'Please add your property address, name and a valid phone number.';
-      bad.focus();
-      return;
-    }
-    if (form.company.value) return; // bot filled the hidden field
-
-    var data = {};
-    new FormData(form).forEach(function (v, k) { if (k !== 'company') data[k] = v; });
-    data.page = location.pathname;
-    var endpoint = form.dataset.endpoint;
-
-    if (endpoint) {
-      var b = form.querySelector('button'); b.disabled = true; b.textContent = 'Sending...';
-      fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(data) })
-        .then(function (r) { if (!r.ok) throw 0; location.href = '/thank-you/'; })
-        .catch(function () {
-          b.disabled = false; b.textContent = 'Get My Cash Offer';
-          status.className = 'form-status err';
-          status.textContent = 'Something went wrong. Please call or text us instead.';
-        });
-    } else {
-      var body = Object.keys(data).map(function (k) { return k + ': ' + data[k]; }).join('\n');
-      location.href = 'mailto:' + form.dataset.email + '?subject=' + encodeURIComponent('Cash offer request: ' + data.address) + '&body=' + encodeURIComponent(body);
-      status.className = 'form-status ok';
-      status.textContent = 'Your email app should open with your details. Just press send, or call us if it does not open.';
-    }
-    if (window.gtag) gtag('event', 'generate_lead', { page_path: location.pathname });
   });
-});
+}

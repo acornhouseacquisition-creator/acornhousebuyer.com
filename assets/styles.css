@@ -63,22 +63,11 @@ p{margin:0 0 1em}
 .hero-call{font-size:1.05rem}
 .hero-call a{color:#fff;font-weight:800}
 
-/* form */
-.lead-form{background:#fff;color:var(--ink);border-radius:var(--r);padding:26px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+/* form card (the Close form renders inside it; its own styles are in main.js) */
 .form-h{font-size:1.4rem;margin-bottom:.2em}
-.form-sub{color:var(--muted);font-size:.95rem}
-.lead-form label{display:block;font-weight:700;font-size:.9rem;margin:12px 0 4px}
-.opt{font-weight:400;color:var(--muted)}
-.lead-form input,.lead-form select{width:100%;padding:12px 13px;border:1.5px solid #cfc8bb;border-radius:9px;font:inherit;font-size:16px;background:#fff;color:var(--ink)}
-.lead-form input:focus,.lead-form select:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 3px rgba(31,77,58,.18)}
-.lead-form .btn{margin-top:18px;font-size:1.08rem}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
-.form-note{font-size:.75rem;color:var(--muted);margin:12px 0 0;line-height:1.45}
-.form-status{margin:10px 0 0;font-weight:700}
-.form-status.err{color:#b3261e}
-.form-status.ok{color:var(--green)}
-.lead-form .invalid{border-color:#b3261e}
+.form-sub{color:var(--muted);font-size:.95rem;margin-bottom:.6em}
+.close-card{background:#fff;color:var(--ink);border-radius:var(--r);padding:26px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.close-card close-form{display:block;min-height:600px}
 
 /* trust */
 .trust{background:#fff;border-bottom:1px solid var(--line)}
@@ -138,10 +127,10 @@ p{margin:0 0 1em}
 .prose h2:first-child{margin-top:0}
 .note{font-size:.9rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin-top:28px}
 .side{position:sticky;top:90px}
-.side .lead-form{box-shadow:var(--sh)}
+.side .close-card{box-shadow:var(--sh)}
 .side-h{font-size:1.05rem;margin:0 0 .5em}
 .side ul{padding-left:1.1em;margin:0 0 1.5em}
-aside.side:not(:has(form)){background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:24px}
+aside.side:not(:has(.close-card)){background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:24px}
 
 /* contact */
 .contact-list{display:flex;flex-direction:column;gap:14px}
@@ -196,8 +185,8 @@ aside.side:not(:has(form)){background:#fff;border:1px solid var(--line);border-r
   .wrap{padding:0 16px}
   .sec{padding:52px 0}
   .hero{padding:36px 0 44px}
-  .steps,.cards,.f-grid,.row2{grid-template-columns:1fr}
-  .lead-form{padding:20px}
+  .steps,.cards,.f-grid{grid-template-columns:1fr}
+  .close-card{padding:20px}
   .logo-img{height:48px}
   .hdr-phone span{display:none}
   .hdr-phone .ic{width:24px;height:24px}
@@ -208,7 +197,3 @@ aside.side:not(:has(form)){background:#fff;border:1px solid var(--line);border-r
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 
-/* Close CRM form card (the form itself renders inside close-form) */
-.close-card{background:#fff;color:var(--ink);border-radius:var(--r);padding:26px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
-.close-card close-form{display:block;min-height:420px}
-@media (max-width:640px){.close-card{padding:20px}}

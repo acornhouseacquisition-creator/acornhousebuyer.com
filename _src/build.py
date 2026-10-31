@@ -2,7 +2,7 @@
 Run:  python3 _src/build.py      (from the repo root or anywhere)
 Then: python3 _src/check.py
 Folders starting with "_" are not published by GitHub Pages."""
-import json, os, html, datetime
+import json, os, html, datetime, hashlib
 from content import CITIES, SITUATIONS, FAQ_HOME
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -16,7 +16,6 @@ PHONE_TEL = "+17042463399"
 EMAIL = "info@acornhousebuyer.com"
 STREET = ""                # street address for schema/footer; leave "" to show city only
 CITY, STATE, ZIP = "Charlotte", "NC", ""
-FORM_ENDPOINT = ""         # e.g. Formspree/Close form URL. Empty = form opens a pre-filled email
 CLOSE_FORM_ID = "form_034pBun8a92JhCSDTxnwlV"  # Close saves the page URL on each submission (source_url)
 CLOSE_SCRIPT = '<script src="https://webforms.closeiocdn.com/webforms.js" type="module" crossorigin="anonymous" defer></script>'
 GA4_ID = ""                # e.g. "G-XXXXXXX"
@@ -134,21 +133,10 @@ def footer():
 <div class="sticky-cta" aria-label="Quick contact"><a href="tel:{PHONE_TEL}">{icon("phone")}Call</a><a href="sms:{PHONE_TEL}">Text</a><a class="go" href="/get-cash-offer/">Get Cash Offer</a></div>'''
 
 
-def lead_form(heading="Get Your Free Cash Offer", sub="No obligation. We usually reply within a few hours.", fid="f"):
-    action = E(FORM_ENDPOINT)
-    return f'''<form class="lead-form" data-endpoint="{action}" data-email="{EMAIL}" novalidate>
-<h2 class="form-h">{heading}</h2><p class="form-sub">{sub}</p>
-<label for="{fid}-addr">Property address</label><input id="{fid}-addr" name="address" autocomplete="street-address" required placeholder="123 Main St, Charlotte, NC">
-<div class="row2"><div><label for="{fid}-name">Your name</label><input id="{fid}-name" name="name" autocomplete="name" required></div>
-<div><label for="{fid}-phone">Phone</label><input id="{fid}-phone" name="phone" type="tel" autocomplete="tel" required></div></div>
-<label for="{fid}-email">Email <span class="opt">(optional)</span></label><input id="{fid}-email" name="email" type="email" autocomplete="email">
-<label for="{fid}-why">What's going on with the house? <span class="opt">(optional)</span></label>
-<select id="{fid}-why" name="situation"><option value="">Choose one</option><option>Needs repairs</option><option>Inherited / probate</option><option>Behind on payments / foreclosure</option><option>Divorce</option><option>Rental / tenant problems</option><option>Relocating</option><option>Just want a fast sale</option><option>Other</option></select>
-<input class="hp" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
-<button class="btn btn-block" type="submit">Get My Cash Offer</button>
-<p class="form-note">By submitting, you agree we may contact you by call, text or email about your property. Msg &amp; data rates may apply. Reply STOP to opt out. See our <a href="/privacy-policy/">Privacy Policy</a>.</p>
-<p class="form-status" role="status" aria-live="polite"></p>
-</form>'''
+def asset_url(name):
+    """Asset path with a version that changes whenever the file changes, so browsers don't keep old copies."""
+    with open(os.path.join(ROOT, name.lstrip("/")), "rb") as f:
+        return f"{name}?v={hashlib.md5(f.read()).hexdigest()[:8]}"
 
 
 def close_form(heading="Get Your Free Cash Offer", sub="No obligation. We usually reply within a few hours."):
@@ -157,7 +145,7 @@ def close_form(heading="Get Your Free Cash Offer", sub="No obligation. We usuall
 <noscript><p>Please call or text <a href="tel:{PHONE_TEL}">{PHONE_DISPLAY}</a> for your offer.</p></noscript></div>'''
 
 
-def page(path, title, desc, body, schema=(), trail=None, priority="0.7", robots="index,follow", in_sitemap=True, head_extra=""):
+def page(path, title, desc, body, schema=(), trail=None, priority="0.7", robots="index,follow", in_sitemap=True):
     graph = [business_schema(),
              {"@type": "WebSite", "@id": SITE + "/#website", "url": SITE + "/", "name": BRAND, "publisher": {"@id": ORG_ID}},
              {"@type": "WebPage", "@id": SITE + path + "#webpage", "url": SITE + path, "name": title,
@@ -201,8 +189,8 @@ def page(path, title, desc, body, schema=(), trail=None, priority="0.7", robots=
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="stylesheet" href="/assets/styles.css?v={TODAY}">
-{verify}{ga}{head_extra}
+<link rel="stylesheet" href="{asset_url("/assets/styles.css")}">
+{verify}{ga}{CLOSE_SCRIPT if "<close-form" in body else ""}
 {ld(graph)}
 </head>
 <body>
@@ -212,7 +200,7 @@ def page(path, title, desc, body, schema=(), trail=None, priority="0.7", robots=
 {body}
 </main>
 {footer()}
-<script src="/assets/main.js?v={TODAY}" defer></script>
+<script src="{asset_url("/assets/main.js")}" defer></script>
 </body>
 </html>
 '''
@@ -319,7 +307,7 @@ def build_home():
 {cta_band()}'''
     page("/", "We Buy Houses for Cash in NC | Acorn House Buyer",
          "Sell your North Carolina house fast for cash. Any condition, no repairs, no commissions. Get a fair written offer in 24 hours and close on your date.",
-         body, schema=[faq_schema(FAQ_HOME)], priority="1.0", head_extra=CLOSE_SCRIPT)
+         body, schema=[faq_schema(FAQ_HOME)], priority="1.0")
 
 
 def build_city(c):
@@ -342,7 +330,7 @@ def build_city(c):
 <ul class="ticks">{"".join(f"<li>{icon('check')}{t}</li>" for t in ["As-is: no repairs, cleaning or showings", "No commissions; we pay normal closing costs", "Close in 7 to 14 days or on your date"])}</ul>
 <p class="hero-call">Call or text: <a href="tel:{PHONE_TEL}">{PHONE_DISPLAY}</a></p>
 </div>
-<div class="hero-form">{lead_form(f"Get Your {n} Cash Offer", fid="city")}</div>
+<div class="hero-form">{close_form(f"Get Your {n} Cash Offer")}</div>
 </div></section>
 {trust_strip()}
 <section class="sec"><div class="wrap two-col">
@@ -376,7 +364,7 @@ def build_situation(s):
     body = f'''<section class="hero hero-sm"><div class="wrap hero-in">
 <div class="hero-copy"><p class="eyebrow light">{E(s["short"])}</p><h1>{E(s["h1"])}</h1><p class="lead">{E(s["intro"])}</p>
 <p class="hero-call">Talk it through with us: <a href="tel:{PHONE_TEL}">{PHONE_DISPLAY}</a></p></div>
-<div class="hero-form">{lead_form(fid="sit")}</div></div></section>
+<div class="hero-form">{close_form()}</div></div></section>
 {trust_strip()}
 <section class="sec"><div class="wrap prose-wrap"><article class="prose">{secs}
 <p class="note">This page is general information, not legal or financial advice. For your specific situation, talk with a North Carolina attorney or a HUD-approved housing counselor.</p></article>
@@ -418,7 +406,7 @@ def build_simple_pages():
 <h2>3. You get a written cash offer</h2><p>Usually within 24 hours. We explain how we arrived at the number, including the repair estimate. The offer is all cash, so there's no lender approval or appraisal to wait for.</p>
 <h2>4. Sign the agreement and pick a date</h2><p>If you accept, we sign a simple purchase agreement and send it to a North Carolina closing attorney. They search the title and order a payoff from your lender. You decide the closing date.</p>
 <h2>5. Close and get paid</h2><p>You sign at the attorney's office or remotely with a mobile notary. The attorney pays off your mortgage and liens and sends your proceeds by wire or check. Leave anything you don't want; we take care of it.</p>
-</article><aside class="side">{lead_form("Start With a Free Offer", "Takes about 2 minutes.", "hiw")}</aside></div></section>
+</article><aside class="side">{close_form("Start With a Free Offer", "Takes about 2 minutes.")}</aside></div></section>
 {faq_block(faqs)}{cta_band()}'''
     page("/how-it-works/", "How It Works: Sell Your NC House for Cash",
          "See how selling your house for cash to Acorn House Buyer works, step by step: one walkthrough, a written offer and an attorney closing on your date.",
@@ -436,7 +424,7 @@ def build_simple_pages():
 <h2>Example: a $300,000 house that needs work</h2><p>Say a house would sell for $300,000 fully updated, but needs $35,000 of repairs. Listing as-is means fewer buyers, and many can't get loans on it. Fixing it first means paying for the work, taking on contractor risk and waiting. A cash offer accounts for those repairs up front, so you skip the work, the commissions and the wait.</p>
 <h2>When a cash sale makes the most sense</h2><p>Major repairs, inherited homes you don't want to manage, tenants in place, foreclosure deadlines, divorce, or a move on a fixed date. In these cases, certainty and speed are often worth more than a higher price that may never close.</p>
 <h2>When listing makes more sense</h2><p>If your home is updated, in a high-demand area, and you have time, an agent will often get you more. We would rather tell you that than make an offer that doesn't fit.</p>
-</article><aside class="side">{lead_form("Compare With a Real Offer", "Free, no obligation.", "cmp")}</aside></div></section>
+</article><aside class="side">{close_form("Compare With a Real Offer", "Free, no obligation.")}</aside></div></section>
 {faq_block(faqs)}{cta_band()}'''
     page("/sell-to-cash-buyer-vs-agent-nc/", "Cash Home Buyer vs. Realtor in NC: Honest Compare",
          "Should you sell your North Carolina house to a cash buyer or list with an agent? Compare fees, repairs, timelines and net proceeds side by side.",
@@ -458,7 +446,7 @@ def build_simple_pages():
 <h2>How we work</h2><p>Like an acorn that grows into something strong, we believe good deals start small and honest: a real conversation, a fair number with the math shown, and a closing handled by a licensed North Carolina attorney. We don't use pressure tactics, and we're happy to tell you when listing with an agent would serve you better.</p>
 <h2>What we are not</h2><p>We are not real estate agents and we don't list houses. We are buyers. When we make you an offer, we either buy the property ourselves or, in some cases, assign the contract to a partner investor, which we will disclose to you. Either way, your price and terms don't change, and you never pay us anything.</p>
 <h2>Our promise</h2><ul class="list"><li>Fair, written offers with the reasoning explained</li><li>No fees, no commissions, no surprise deductions</li><li>Every sale closed through a licensed NC closing attorney</li><li>Your information stays private and is never sold</li></ul>
-</article><aside class="side">{lead_form("Talk to Us About Your House", "No obligation.", "abt")}</aside></div></section>{cta_band()}'''
+</article><aside class="side">{close_form("Talk to Us About Your House", "No obligation.")}</aside></div></section>{cta_band()}'''
     page("/about/", "About Acorn House Buyer | NC Cash Home Buyers",
          "Acorn House Buyer is a Charlotte-based real estate investment company buying houses for cash across North Carolina with fair, transparent offers.",
          body, trail=[("Home", "/"), ("About", "/about/")], priority="0.6")
@@ -472,7 +460,7 @@ def build_simple_pages():
 <a class="contact-item" href="mailto:{EMAIL}">{icon("mail", "card-ic")}<span><b>Email</b>{EMAIL}</span></a>
 <p>Hours: Monday to Saturday, 8am to 8pm. Leave a message any time and we'll call you back.</p>
 <p>We buy houses throughout <a href="/north-carolina/">North Carolina</a>.</p></div>
-<div>{lead_form("Send Us Your Property", "We usually reply within a few hours.", "ct")}</div>
+<div>{close_form("Send Us Your Property", "We usually reply within a few hours.")}</div>
 </div></section>'''
     page("/contact/", "Contact Us | Acorn House Buyer, North Carolina",
          f"Contact Acorn House Buyer to sell your North Carolina house for cash. Call or text {PHONE_DISPLAY} or email {EMAIL}.",
@@ -483,7 +471,7 @@ def build_simple_pages():
     body = f'''<section class="page-head"><div class="wrap"><h1>Get Your Free Cash Offer</h1>
 <p class="lead">Tell us about your North Carolina property. We'll reach out to ask a few questions and set up a quick walkthrough.</p></div></section>
 <section class="sec"><div class="wrap two-col">
-<div>{lead_form("Your Property", "Takes about 2 minutes. No obligation.", "go")}</div>
+<div>{close_form("Your Property", "Takes about 2 minutes. No obligation.")}</div>
 <div class="callout"><h3>What happens next</h3><ol class="list"><li>We call you, usually within a few hours</li><li>We schedule one walkthrough</li><li>You get a written cash offer, usually within 24 hours</li><li>You choose whether to accept, and when to close</li></ol>
 <p>Rather talk now? Call <a href="tel:{PHONE_TEL}">{PHONE_DISPLAY}</a></p></div>
 </div></section>{trust_strip()}'''

@@ -3,7 +3,7 @@
 Static site for Acorn House Buyer (North Carolina cash home buyer), hosted on GitHub Pages.
 
 ## Edit and rebuild
-- Business details (phone, address, form endpoint, GA4, Search Console): top of `_src/build.py`
+- Business details (phone, address, Close form ID, GA4, Search Console): top of `_src/build.py`
 - City / situation / FAQ text: `_src/content.py`
 - Design: `assets/styles.css`
 
