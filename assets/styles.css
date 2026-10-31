@@ -208,3 +208,8 @@ aside.side:not(:has(form)){background:#fff;border:1px solid var(--line);border-r
   .sticky-cta a.go{background:var(--acorn);color:#fff}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+/* Close CRM form card (the form itself renders inside close-form) */
+.close-card{background:#fff;color:var(--ink);border-radius:var(--r);padding:26px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.close-card close-form{display:block;min-height:420px}
+@media (max-width:640px){.close-card{padding:20px}}

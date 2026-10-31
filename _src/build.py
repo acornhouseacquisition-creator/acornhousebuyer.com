@@ -17,6 +17,8 @@ EMAIL = "info@acornhousebuyer.com"
 STREET = ""                # street address for schema/footer; leave "" to show city only
 CITY, STATE, ZIP = "Charlotte", "NC", ""
 FORM_ENDPOINT = ""         # e.g. Formspree/Close form URL. Empty = form opens a pre-filled email
+CLOSE_FORM_ID = "form_034pBun8a92JhCSDTxnwlV"  # Close saves the page URL on each submission (source_url)
+CLOSE_SCRIPT = '<script src="https://webforms.closeiocdn.com/webforms.js" type="module" crossorigin="anonymous" defer></script>'
 GA4_ID = ""                # e.g. "G-XXXXXXX"
 GSC_VERIFY = ""            # Google Search Console HTML-tag verification code
 BING_VERIFY = ""
@@ -150,7 +152,13 @@ def lead_form(heading="Get Your Free Cash Offer", sub="No obligation. We usually
 </form>'''
 
 
-def page(path, title, desc, body, schema=(), trail=None, priority="0.7", robots="index,follow", in_sitemap=True):
+def close_form(heading="Get Your Free Cash Offer", sub="No obligation. We usually reply within a few hours."):
+    return f'''<div class="close-card"><h2 class="form-h">{heading}</h2><p class="form-sub">{sub}</p>
+<close-form id="{CLOSE_FORM_ID}"></close-form>
+<noscript><p>Please call or text <a href="tel:{PHONE_TEL}">{PHONE_DISPLAY}</a> for your offer.</p></noscript></div>'''
+
+
+def page(path, title, desc, body, schema=(), trail=None, priority="0.7", robots="index,follow", in_sitemap=True, head_extra=""):
     graph = [business_schema(),
              {"@type": "WebSite", "@id": SITE + "/#website", "url": SITE + "/", "name": BRAND, "publisher": {"@id": ORG_ID}},
              {"@type": "WebPage", "@id": SITE + path + "#webpage", "url": SITE + path, "name": title,
@@ -195,7 +203,7 @@ def page(path, title, desc, body, schema=(), trail=None, priority="0.7", robots=
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/assets/styles.css?v={TODAY}">
-{verify}{ga}
+{verify}{ga}{head_extra}
 {ld(graph)}
 </head>
 <body>
@@ -281,7 +289,7 @@ def build_home():
 <ul class="ticks">{"".join(f"<li>{icon('check')}{t}</li>" for t in ["Any condition: we handle the repairs and cleanout", "Foreclosure, inherited, divorce, rentals, relocation", "Charlotte, Triangle, Triad, the coast and the mountains"])}</ul>
 <p class="hero-call">Prefer to talk? <a href="tel:{PHONE_TEL}">{PHONE_DISPLAY}</a></p>
 </div>
-<div class="hero-form">{lead_form(fid="hero")}</div>
+<div class="hero-form">{close_form()}</div>
 </div></section>
 {trust_strip()}
 {steps_block()}
@@ -312,7 +320,7 @@ def build_home():
 {cta_band()}'''
     page("/", "We Buy Houses for Cash in NC | Acorn House Buyer",
          "Sell your North Carolina house fast for cash. Any condition, no repairs, no commissions. Get a fair written offer in 24 hours and close on your date.",
-         body, schema=[faq_schema(FAQ_HOME)], priority="1.0")
+         body, schema=[faq_schema(FAQ_HOME)], priority="1.0", head_extra=CLOSE_SCRIPT)
 
 
 def build_city(c):
